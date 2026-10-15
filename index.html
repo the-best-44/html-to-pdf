@@ -1,129 +1,93 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>HTML in PDF</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  /* Layout: barra comandi sopra, editor a sinistra, foglio in anteprima a destra con segni di taglio e linee di pagina. */
   :root {
-    --bg: #f2f2f8;
-    --surface: #ffffff;
-    --surface-2: #e9e9f3;
-    --stage: #dadae8;
-    --fg: #17172b;
-    --muted: #5b5b76;
-    --line: #d4d4e4;
-    --accent: #c4165f;
-    --accent-fg: #ffffff;
-    --guide: #c4165f;
-    --ok: #17764a;
-    --err: #b3261e;
-    --shadow: 0 1px 2px rgba(23, 23, 43, .12), 0 8px 24px rgba(23, 23, 43, .14);
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    --bg: #f2f2f8; --surface: #ffffff; --surface-2: #e9e9f3; --stage: #dadae8;
+    --fg: #17172b; --muted: #5b5b76; --line: #d4d4e4;
+    --accent: #c4165f; --accent-fg: #ffffff; --guide: #c4165f;
+    --ok: #17764a; --err: #b3261e;
+    --shadow: 0 1px 2px rgba(23,23,43,.12), 0 8px 24px rgba(23,23,43,.14);
     --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
     --body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
     --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #12121c;
-      --surface: #1b1b2a;
-      --surface-2: #252538;
-      --stage: #0b0b13;
-      --fg: #ececf6;
-      --muted: #9d9db8;
-      --line: #34344c;
-      --accent: #ff6aa8;
-      --accent-fg: #1c0a14;
-      --guide: #ff6aa8;
-      --ok: #5fd39a;
-      --err: #ff8a80;
-      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 10px 28px rgba(0, 0, 0, .6);
+      --bg: #12121c; --surface: #1b1b2a; --surface-2: #252538; --stage: #0b0b13;
+      --fg: #ececf6; --muted: #9d9db8; --line: #34344c;
+      --accent: #ff6aa8; --accent-fg: #1c0a14; --guide: #ff6aa8;
+      --ok: #5fd39a; --err: #ff8a80;
+      --shadow: 0 1px 2px rgba(0,0,0,.5), 0 10px 28px rgba(0,0,0,.6);
       color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #12121c;
-    --surface: #1b1b2a;
-    --surface-2: #252538;
-    --stage: #0b0b13;
-    --fg: #ececf6;
-    --muted: #9d9db8;
-    --line: #34344c;
-    --accent: #ff6aa8;
-    --accent-fg: #1c0a14;
-    --guide: #ff6aa8;
-    --ok: #5fd39a;
-    --err: #ff8a80;
-    --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 10px 28px rgba(0, 0, 0, .6);
+    --bg: #12121c; --surface: #1b1b2a; --surface-2: #252538; --stage: #0b0b13;
+    --fg: #ececf6; --muted: #9d9db8; --line: #34344c;
+    --accent: #ff6aa8; --accent-fg: #1c0a14; --guide: #ff6aa8;
+    --ok: #5fd39a; --err: #ff8a80;
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 10px 28px rgba(0,0,0,.6);
     color-scheme: dark;
   }
-
   body {
-    background: var(--bg);
-    color: var(--fg);
-    font-family: var(--body);
-    font-size: 15px;
-    line-height: 1.5;
-    padding-block: 20px 32px;
-    padding-inline: 16px;
+    margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body);
+    font-size: 15px; line-height: 1.5; padding-block: 20px 32px; padding-inline: 16px;
   }
   .wrap { max-width: 1280px; margin-inline: auto; display: flex; flex-direction: column; gap: 16px; }
-
   header.top { display: flex; flex-direction: column; gap: 8px; }
   h1 {
-    font-family: var(--display);
-    font-weight: 700;
-    font-size: clamp(1.7rem, 4vw, 2.3rem);
-    line-height: 1.1;
-    letter-spacing: -.02em;
-    margin: 0;
-    text-wrap: balance;
+    font-family: var(--display); font-weight: 700; font-size: clamp(1.7rem, 4vw, 2.3rem);
+    line-height: 1.1; letter-spacing: -.02em; margin: 0; text-wrap: balance;
   }
   .lead { margin: 0; color: var(--muted); max-width: 62ch; }
   .ruler {
-    height: 10px;
-    opacity: .55;
+    height: 10px; opacity: .55;
     background:
       linear-gradient(90deg, var(--muted) 1px, transparent 0) 0 100% / 37.795px 10px repeat-x,
       linear-gradient(90deg, var(--muted) 1px, transparent 0) 0 100% / 3.7795px 4px repeat-x;
   }
-
   .bar {
     display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 14px;
-    background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
-    padding: 12px 14px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px;
   }
   .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-  .field label {
-    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted);
-  }
+  .field label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
   select, input[type="number"], input[type="text"] {
     height: 36px; padding: 0 10px; border-radius: 6px; border: 1px solid var(--line);
     background: var(--bg); color: var(--fg); font: inherit; min-width: 0;
   }
   input[type="number"] { width: 84px; font-variant-numeric: tabular-nums; }
   input#fname { width: 190px; max-width: 100%; }
+  .check { flex-direction: row; align-items: center; gap: 8px; height: 36px; }
+  .check input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+  .check label { text-transform: none; letter-spacing: 0; font-size: 14px; font-weight: 500; color: var(--fg); }
   .spacer { flex: 1 1 0; }
-
   button, .btn {
     height: 36px; padding: 0 14px; border-radius: 6px; border: 1px solid var(--line);
     background: var(--surface); color: var(--fg); font: inherit; font-weight: 500; cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   }
   button:hover, .btn:hover { background: var(--surface-2); }
-  button.primary {
-    background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; height: 40px; padding: 0 20px;
-  }
+  button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; height: 40px; padding: 0 20px; }
   button.primary:hover { filter: brightness(1.06); background: var(--accent); }
   button:disabled { opacity: .6; cursor: progress; }
   :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
   .btn:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
-
   #status { margin: 0; min-height: 1.5em; font-size: 14px; color: var(--muted); }
   #status.ok { color: var(--ok); }
   #status.err { color: var(--err); }
-
   .work { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 16px; }
   .panel {
     display: flex; flex-direction: column; min-width: 0; height: 640px;
@@ -138,14 +102,12 @@
   .tabs button[aria-selected="true"] { background: var(--surface-2); color: var(--fg); border-color: var(--line); }
   .mini { display: flex; gap: 6px; }
   .mini button, .mini .btn { height: 30px; font-size: 13px; padding: 0 10px; }
-
   textarea.code {
     flex: 1; width: 100%; min-height: 0; border: 0; resize: none; padding: 12px 14px;
-    background: var(--surface); color: var(--fg);
-    font: 13px/1.6 var(--mono); tab-size: 2; white-space: pre; overflow: auto;
+    background: var(--surface); color: var(--fg); font: 13px/1.6 var(--mono); tab-size: 2; white-space: pre; overflow: auto;
   }
+  textarea.code[hidden] { display: none; }
   textarea.code:focus-visible { outline-offset: -3px; }
-
   .preview-title { font-family: var(--display); font-weight: 600; font-size: 15px; }
   #info { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
   .stage { flex: 1; min-height: 0; overflow: auto; background: var(--stage); padding: 30px 28px 36px; }
@@ -159,8 +121,8 @@
   .crop.tr { right: -14px; top: -14px; border-left-width: 1px; border-bottom-width: 1px; }
   .crop.bl { left: -14px; bottom: -14px; border-right-width: 1px; border-top-width: 1px; }
   .crop.br { right: -14px; bottom: -14px; border-left-width: 1px; border-top-width: 1px; }
-  .flow { position: relative; }
-  #frame { display: block; border: 0; background: #ffffff; }
+  .flow { position: relative; overflow: hidden; }
+  #frame { display: block; border: 0; background: #ffffff; transform-origin: 0 0; }
   .guides {
     position: absolute; left: 0; right: 0; top: 0; pointer-events: none;
     background: repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--ph) - 1px), var(--guide) calc(var(--ph) - 1px), var(--guide) var(--ph));
@@ -168,9 +130,7 @@
     mask-image: repeating-linear-gradient(90deg, #000 0 6px, transparent 6px 10px);
   }
   .legend { margin: 0; padding: 8px 12px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
-
   .notes { margin: 0; font-size: 13px; color: var(--muted); max-width: 90ch; }
-
   @media (max-width: 860px) {
     .work { grid-template-columns: minmax(0, 1fr); }
     .panel { height: 520px; }
@@ -179,7 +139,8 @@
     .stage { padding: 24px 22px 28px; }
   }
 </style>
-
+</head>
+<body>
 <div class="wrap">
   <header class="top">
     <h1>HTML in PDF</h1>
@@ -212,6 +173,10 @@
       <label for="fname">Nome del file</label>
       <input id="fname" type="text" value="documento" autocomplete="off" spellcheck="false">
     </div>
+    <div class="field check">
+      <input id="fit" type="checkbox" checked>
+      <label for="fit">Adatta alla larghezza</label>
+    </div>
     <div class="spacer"></div>
     <button id="go" class="primary" type="button">Scarica PDF</button>
   </section>
@@ -243,7 +208,7 @@
         <div class="sizer" id="sizer">
           <div id="paper">
             <i class="crop tl"></i><i class="crop tr"></i><i class="crop bl"></i><i class="crop br"></i>
-            <div class="flow">
+            <div class="flow" id="flow">
               <iframe id="frame" title="Anteprima del documento" sandbox="allow-same-origin" scrolling="no"></iframe>
               <div class="guides" id="guides" aria-hidden="true"></div>
             </div>
@@ -254,7 +219,7 @@
     </section>
   </main>
 
-  <p class="notes">Gli script non vengono eseguiti. Immagini e font devono essere incorporati nel codice (data URI), perché i file esterni non vengono caricati. Il testo nel PDF è un'immagine e non si può selezionare.</p>
+  <p class="notes">Gli script non vengono eseguiti. Immagini e font devono essere incorporati nel codice (data URI), perché i file esterni non vengono caricati. Il testo nel PDF è un'immagine e non si può selezionare. Con «Adatta alla larghezza» attivo, un layout più largo dell'area utile (per esempio un CV da 210 mm con margini di 15 mm) viene rimpicciolito invece di essere tagliato.</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -347,7 +312,8 @@
 '.nota { margin-top: 36px; padding: 12px 14px; background: #f6f1f4; border-left: 4px solid #c4165f; }\n';
 
   var htmlEl = $("src-html"), cssEl = $("src-css");
-  var frame = $("frame"), paper = $("paper"), sizer = $("sizer"), stage = $("stage"), guides = $("guides");
+  var frame = $("frame"), paper = $("paper"), sizer = $("sizer"), stage = $("stage");
+  var guides = $("guides"), flow = $("flow");
   var G = null;
   var statusEl = $("status");
 
@@ -381,6 +347,14 @@
       '<body' + attrs + '>' + d.body.innerHTML + '</body></html>';
   }
 
+  /* Larghezza naturale del documento: se il layout è più largo dell'area utile
+     (larghezza fissa tipo 210mm), con "Adatta alla larghezza" la si misura per poi rimpicciolirlo. */
+  function naturalWidth(doc, base) {
+    if (!$("fit").checked) return base;
+    var sw = Math.ceil(Math.max(doc.documentElement.scrollWidth, doc.body ? doc.body.scrollWidth : 0));
+    return sw > base + 1 ? sw : base;
+  }
+
   function sizeLabel() {
     var o = $("orient").value === "landscape" ? "orizzontale" : "verticale";
     return $("size").value + " " + o;
@@ -392,24 +366,35 @@
     paper.style.width = (g.w * MM) + "px";
     paper.style.minHeight = (g.h * MM) + "px";
     paper.style.padding = (g.m * MM) + "px";
+    frame.style.transform = "none";
     frame.style.width = (g.cw * MM) + "px";
     frame.style.height = "10px";
+    flow.style.width = (g.cw * MM) + "px";
     guides.style.setProperty("--ph", (g.ch * MM) + "px");
     frame.srcdoc = docFor();
   }
 
   function afterLoad() {
     if (!G) return;
-    var h = 40;
+    var base = G.cw * MM, nw = base, h = 40, k = 1;
     try {
       var doc = frame.contentDocument;
+      frame.style.width = base + "px";
+      frame.style.height = "10px";
+      nw = naturalWidth(doc, base);
+      frame.style.width = nw + "px";
       frame.style.height = "10px";
       h = Math.max(doc.documentElement.scrollHeight, doc.body ? doc.body.scrollHeight : 0, 20);
     } catch (e) { /* anteprima non leggibile */ }
+    k = base / nw;
     frame.style.height = h + "px";
-    guides.style.height = h + "px";
-    var pages = Math.max(1, Math.ceil((h - 1) / (G.ch * MM)));
-    $("info").textContent = "circa " + pages + (pages === 1 ? " pagina" : " pagine") + " · " + sizeLabel() + " · margini " + G.m + " mm";
+    frame.style.transform = k < 1 ? "scale(" + k + ")" : "none";
+    flow.style.width = base + "px";
+    flow.style.height = (h * k) + "px";
+    guides.style.height = (h * k) + "px";
+    var pages = Math.max(1, Math.ceil((h * k - 1) / (G.ch * MM)));
+    $("info").textContent = "circa " + pages + (pages === 1 ? " pagina" : " pagine") + " · " + sizeLabel() +
+      " · margini " + G.m + " mm" + (k < 1 ? " · ridotto al " + Math.round(k * 100) + "%" : "");
     fit();
   }
   frame.addEventListener("load", afterLoad);
@@ -433,7 +418,8 @@
     try {
       localStorage.setItem(STORE_KEY, JSON.stringify({
         html: htmlEl.value, css: cssEl.value, size: $("size").value,
-        orient: $("orient").value, margin: $("margin").value, fname: $("fname").value
+        orient: $("orient").value, margin: $("margin").value, fname: $("fname").value,
+        fit: $("fit").checked
       }));
     } catch (e) { /* facoltativo */ }
   }
@@ -448,6 +434,7 @@
       if (s.orient === "landscape" || s.orient === "portrait") $("orient").value = s.orient;
       if (s.margin !== undefined && s.margin !== "") $("margin").value = s.margin;
       if (typeof s.fname === "string") $("fname").value = s.fname;
+      if (s.fit === false) $("fit").checked = false;
       return true;
     } catch (e) { return false; }
   }
@@ -464,7 +451,7 @@
 
   htmlEl.addEventListener("input", schedule);
   cssEl.addEventListener("input", schedule);
-  ["size", "orient", "margin"].forEach(function (id) {
+  ["size", "orient", "margin", "fit"].forEach(function (id) {
     $(id).addEventListener("change", function () { render(); save(); });
   });
   $("margin").addEventListener("input", schedule);
@@ -559,14 +546,20 @@
       await Promise.all(Array.prototype.map.call(doc.images, function (i) {
         return i.decode ? i.decode().catch(function () {}) : Promise.resolve();
       }));
+
+      /* Se il layout è più largo dell'area utile, allarga il contenitore: l'immagine
+         viene poi riportata alla larghezza della pagina, quindi rimpicciolita senza tagli. */
+      holder.style.height = "10px";
+      var Wn = Math.ceil(naturalWidth(doc, W));
+      holder.style.width = Wn + "px";
       holder.style.height = "10px";
       var H = Math.max(Math.ceil(doc.documentElement.scrollHeight), 20);
       holder.style.height = H + "px";
 
-      var scale = Math.max(0.6, Math.min(2, 30000 / H, Math.sqrt(16000000 / (W * H))));
+      var scale = Math.max(0.6, Math.min(2, 30000 / H, Math.sqrt(16000000 / (Wn * H))));
       var canvas = await window.html2canvas(doc.documentElement, {
-        scale: scale, backgroundColor: "#ffffff", width: W, height: H,
-        windowWidth: W, windowHeight: H, useCORS: true, logging: false
+        scale: scale, backgroundColor: "#ffffff", width: Wn, height: H,
+        windowWidth: Wn, windowHeight: H, useCORS: true, logging: false
       });
 
       var orientation = g.w > g.h ? "landscape" : "portrait";
@@ -615,5 +608,5 @@
   render();
 })();
 </script>
-
-</body></html>
+</body>
+</html>
