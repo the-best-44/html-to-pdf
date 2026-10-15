@@ -167,7 +167,7 @@
     </div>
     <div class="field">
       <label for="margin">Margini (mm)</label>
-      <input id="margin" type="number" min="0" max="40" step="1" value="15">
+      <input id="margin" type="number" min="0" max="40" step="1" value="0">
     </div>
     <div class="field">
       <label for="fname">Nome del file</label>
@@ -219,7 +219,7 @@
     </section>
   </main>
 
-  <p class="notes">Gli script non vengono eseguiti. Immagini e font devono essere incorporati nel codice (data URI), perché i file esterni non vengono caricati. Il testo nel PDF è un'immagine e non si può selezionare. Con «Adatta alla larghezza» attivo, un layout più largo dell'area utile (per esempio un CV da 210 mm con margini di 15 mm) viene rimpicciolito invece di essere tagliato.</p>
+  <p class="notes">Gli script non vengono eseguiti. Immagini e font devono essere incorporati nel codice (data URI), perché i file esterni non vengono caricati. Il testo nel PDF è selezionabile e ricercabile (leggibile dagli ATS) e i link http, mailto e tel restano cliccabili. Il testo usa Helvetica: i caratteri fuori da Latin-1 non vengono inclusi nello strato di testo. Con «Adatta alla larghezza» attivo, un layout più largo dell'area utile (per esempio un CV da 210 mm con margini di 15 mm) viene rimpicciolito invece di essere tagliato.</p>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -505,6 +505,65 @@
     return end;
   }
 
+  /* Legge dall'iframe la posizione di ogni parola e di ogni link (in px CSS). */
+  function collectLayer(doc) {
+    var words = [], links = [], win = doc.defaultView;
+    var walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+    var rng = doc.createRange(), n;
+    while ((n = walker.nextNode())) {
+      var t = n.nodeValue;
+      if (!t.trim() || !n.parentElement) continue;
+      var cs = win.getComputedStyle(n.parentElement);
+      if (cs.visibility === "hidden" || cs.display === "none") continue;
+      var re = /\S+/g, m;
+      while ((m = re.exec(t))) {
+        rng.setStart(n, m.index);
+        rng.setEnd(n, m.index + m[0].length);
+        var b = rng.getClientRects()[0];
+        if (!b || !b.width) continue;
+        var s = m[0];
+        if (cs.textTransform === "uppercase") s = s.toUpperCase();
+        else if (cs.textTransform === "lowercase") s = s.toLowerCase();
+        s = s.replace(/[^\u0020-\u00FF\u20AC\u2013\u2014\u2018\u2019\u201C\u201D\u2022]/g, "");
+        if (!s) continue;
+        words.push({
+          s: s, x: b.left, top: b.top, bottom: b.bottom, w: b.width,
+          fs: parseFloat(cs.fontSize) || 12,
+          bold: parseInt(cs.fontWeight, 10) >= 600
+        });
+      }
+    }
+    doc.querySelectorAll("a[href]").forEach(function (a) {
+      var href = a.getAttribute("href") || "";
+      if (!/^(https?:|mailto:|tel:)/i.test(href)) return;
+      Array.prototype.forEach.call(a.getClientRects(), function (b) {
+        if (b.width > 1 && b.height > 1) links.push({ url: href, x: b.left, top: b.top, w: b.width, h: b.height });
+      });
+    });
+    return { words: words, links: links };
+  }
+
+  /* Aggiunge alla pagina corrente il testo invisibile (selezionabile) e le aree cliccabili.
+     k = mm per px CSS; y0..y1 = tratto di documento (px CSS) mostrato in questa pagina. */
+  function addLayer(pdf, layer, g, k, y0, y1) {
+    var PT = 72 / 25.4;
+    layer.words.forEach(function (w) {
+      var mid = (w.top + w.bottom) / 2;
+      if (mid < y0 || mid >= y1) return;
+      var x = g.m + w.x * k, y = g.m + (w.bottom - y0) * k;
+      pdf.setFont("helvetica", w.bold ? "bold" : "normal");
+      pdf.setFontSize(w.fs * k * PT);
+      var tw = pdf.getTextWidth(w.s);
+      var cs = w.s.length > 1 ? (w.w * k - tw) / (w.s.length - 1) : 0;
+      pdf.text(w.s + " ", x, y, { baseline: "bottom", renderingMode: "invisible", charSpace: cs });
+    });
+    layer.links.forEach(function (l) {
+      var mid = l.top + l.h / 2;
+      if (mid < y0 || mid >= y1) return;
+      pdf.link(g.m + l.x * k, g.m + (l.top - y0) * k, l.w * k, l.h * k, { url: l.url });
+    });
+  }
+
   function cleanName() {
     var n = ($("fname").value || "").trim().replace(/\.pdf$/i, "").replace(/[\\\/:*?"<>|]+/g, "-");
     return (n || "documento") + ".pdf";
@@ -556,6 +615,9 @@
       var H = Math.max(Math.ceil(doc.documentElement.scrollHeight), 20);
       holder.style.height = H + "px";
 
+      /* Posizione di parole e link, letta con il layout definitivo */
+      var layer = collectLayer(doc);
+
       var scale = Math.max(0.6, Math.min(2, 30000 / H, Math.sqrt(16000000 / (Wn * H))));
       var canvas = await window.html2canvas(doc.documentElement, {
         scale: scale, backgroundColor: "#ffffff", width: Wn, height: H,
@@ -566,6 +628,7 @@
       var pdf = new window.jspdf.jsPDF({ unit: "mm", format: [g.w, g.h], orientation: orientation, compress: true });
       var cw = canvas.width, chh = canvas.height;
       var pagePx = Math.floor(cw * g.ch / g.cw);
+      var mmPerPx = g.cw / (cw / scale);
       var ctx = canvas.getContext("2d", { willReadFrequently: true });
       var bg = ctx.getImageData(0, 0, 1, 1).data;
       var y = 0, first = true, pages = 0;
@@ -582,6 +645,8 @@
         if (!first) pdf.addPage([g.w, g.h], orientation);
         first = false;
         pdf.addImage(part.toDataURL("image/jpeg", 0.92), "JPEG", g.m, g.m, g.cw, sh * g.cw / cw, undefined, "FAST");
+        /* testo invisibile + link cliccabili per questa pagina */
+        addLayer(pdf, layer, g, mmPerPx, y / scale, end / scale);
         pages++;
         y = end;
       }
