@@ -575,8 +575,21 @@
     if (c === "too_large") return "Il file è troppo grande. Prova con meno pagine o margini più ampi.";
     if (c === "rate_limited") return "Hai appena avviato un altro salvataggio. Attendi un momento e riprova.";
     if (c === "unavailable" || c === "not_granted" || c === "capability_disabled" || c === "capability_removed")
-      return "In questa vista il download non è disponibile. Apri la pagina da Claude per scaricare il PDF.";
+      return "Il download tramite Claude non è disponibile in questa vista.";
     return (err && err.message) ? err.message : "Non sono riuscito a creare il PDF. Controlla il codice e riprova.";
+  }
+
+  /* Salvataggio di riserva: link di download normale (funziona fuori da Claude) */
+  function browserDownload(blob, name) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
   }
 
   async function exportPdf() {
@@ -585,9 +598,13 @@
     setStatus("Creo il PDF…");
     var holder = null;
     try {
-      if (!window.html2canvas || !window.jspdf) throw { message: "Le librerie per il PDF non si sono caricate. Ricarica la pagina." };
-      var dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
-      if (!dl) throw { code: "unavailable" };
+      if (!window.html2canvas || !window.jspdf) throw { message: "Le librerie per il PDF non si sono caricate. Controlla la connessione e ricarica la pagina." };
+
+      /* Dentro Claude usa la capability "downloads"; altrove dl resta null */
+      var dl = null;
+      try {
+        dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null;
+      } catch (e) { dl = null; }
 
       var g = geom();
       var W = Math.ceil(g.cw * MM);
@@ -653,7 +670,11 @@
 
       var blob = pdf.output("blob");
       var name = cleanName();
-      await dl.save({ filename: name, data: blob });
+      if (dl) {
+        await dl.save({ filename: name, data: blob });
+      } else {
+        browserDownload(blob, name);
+      }
       setStatus("PDF pronto: " + name + " (" + pages + (pages === 1 ? " pagina" : " pagine") + ").", "ok");
     } catch (err) {
       setStatus(errorText(err), "err");
